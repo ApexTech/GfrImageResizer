@@ -1,0 +1,2 @@
+module GfrImageTransformer
+end
