@@ -1,5 +1,5 @@
-require "bundler/setup"
 require "dotenv/load"
+require "bundler/setup"
 require "gfr_image_transformer"
 
 RSpec.configure do |config|
