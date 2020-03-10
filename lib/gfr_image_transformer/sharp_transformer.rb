@@ -1,28 +1,27 @@
+require "cgi"
 require "base64"
 require "json"
-require "uri"
-require "open-uri"
-require "image_size"
 
 module GfrImageTransformer
   class SharpTransformer
     DEFAULT_RESIZER_MODE = :cover
     RESIZER_MODES = [:cover, :fill, :inside, :outside, :contain]
 
-    attr_reader :image_url, :request_params
+    attr_reader :image_url, :request_params, :width, :height, :metadata, :key
 
     def self.new(*args, &block)
       instance = super(*args)
 
       if block_given?
-        instance.call
+        instance.generate
       else
         instance
       end
     end
 
-    def initialize(image_url, &block)
-      @image_url = image_url
+    def initialize(metadata, &block)
+      @metadata = metadata
+      @image_url = CGI.unescape(metadata.url)
       @request_params = {
         bucket: bucket_name,
         key: extract_key(image_url),
@@ -31,7 +30,7 @@ module GfrImageTransformer
 
       if block_given?
         instance_eval(&block)
-        call
+        generate
       end
     end
 
@@ -42,11 +41,16 @@ module GfrImageTransformer
     #
     def resize(width, height, options = {})
       resizer_mode = options.fetch(:resizer_mode) { DEFAULT_RESIZER_MODE }
+      _width = width.to_i
+      _height = height.to_i
+      @width = _width.zero? ? nil : _width
+      @height = _height.zero? ? nil : _height
+
       raise ArgumentError.new("invalid resizer mode `#{resizer_mode}``") if !RESIZER_MODES.include?(resizer_mode.to_sym)
 
       resize_params = {
-        width: width.zero? ? nil : width,
-        height: height.zero? ? nil : height,
+        width: @width,
+        height: @height,
         fit: resizer_mode,
       }.compact
 
@@ -60,12 +64,14 @@ module GfrImageTransformer
     # @param height [Integer]  height of region to extract
     #
     def extract(width, height, options = {})
-      left = options.fetch(:left) { 0 }
-      top = options.fetch(:top) { 0 }
+      left = options.fetch(:left) { 0 }.to_i
+      top = options.fetch(:top) { 0 }.to_i
+      @width = width.to_i
+      @height = height.to_i
 
       extract_params = {
-        width: width,
-        height: height,
+        width: @width,
+        height: @height,
         left: left,
         top: top,
       }
@@ -92,30 +98,25 @@ module GfrImageTransformer
       self
     end
 
-    def call
+    ##
+    # Use these JPEG options for output image.
+    # @param options [Hash] output options
+    def jpeg(options = {})
+      @request_params[:edits][:jpeg] = options
+    end
+
+    def toFormat(format_type, options = {})
+      self
+    end
+
+    def generate
       encoded_request = Base64.encode64(request_params.to_json).gsub("\n", "")
 
-      url = "#{domain}#{encoded_request}"
-      Image.new(url: url, width: width, height: height)
+      url = "#{domain}/#{encoded_request}"
+      Variant.new(metadata: metadata, url: url, width: width, height: height)
     end
 
     private
-
-    def width
-      @request_params[:edits].fetch(:resize, {})[:width] || calculate_width
-    end
-
-    def height
-      @request_params[:edits].fetch(:resize, {})[:height] || calculate_height
-    end
-
-    def calculate_width
-      (image_size.width * height) / image_size.height
-    end
-
-    def calculate_height
-      (image_size.height * width) / image_size.width
-    end
 
     def bucket_name
       ENV.fetch("BUCKET_NAME")
@@ -126,18 +127,11 @@ module GfrImageTransformer
     end
 
     def extract_key(image_url)
-      index_key = image_url.index(bucket_name) + bucket_name.length + 1
-
-      image_url[index_key..-1]
-    end
-
-    def image_size
-      @image_size ||= URI.parse(image_url).open("rb") do |fh|
-        ImageSize.new(fh)
+      if m = image_url.match(/#{bucket_name}.s3.amazonaws.com\/(.+)/)
+        @key = m[1]
+      elsif m = image_url.match(/s3.amazonaws.com\/#{bucket_name}\/(.+)/)
+        @key = m[1]
       end
-    end
-
-    class Image < OpenStruct
     end
   end
 end
