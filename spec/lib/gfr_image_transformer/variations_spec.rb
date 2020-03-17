@@ -25,4 +25,12 @@ RSpec.describe GfrImageTransformer::Variations do
     expect(cropped.width).to eq(320)
     expect(cropped.height).to eq(240)
   end
+
+  it "should not fetch original image width if width or height is passed" do
+    variant = described_class.for(image_url, width: 1334, height: 749 ) do
+      variant(:default) { resize(640, 0) }
+    end.default
+
+    expect(variant.height).to eq(359)
+  end
 end

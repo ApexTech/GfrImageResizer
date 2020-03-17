@@ -10,8 +10,8 @@ module GfrImageTransformer
     def_delegators :@variants, :[], :fetch, :keys
     def_delegators :metadata, :url, :width, :height
 
-    def initialize(image_url, &block)
-      @metadata = Metadata.new(CGI.unescape(image_url))
+    def initialize(image_url, width: nil, height: nil, &block)
+      @metadata = Metadata.new(CGI.unescape(image_url), width, height)
 
       @variants = {}
 
@@ -20,8 +20,8 @@ module GfrImageTransformer
       end
     end
 
-    def self.for(image_url, &block)
-      new(image_url, &block)
+    def self.for(image_url, width: nil, height: nil, &block)
+      new(image_url, width: width, height: height, &block)
     end
 
     def set_metadata(meta = {})
