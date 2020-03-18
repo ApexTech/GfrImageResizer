@@ -2,7 +2,7 @@ require "spec_helper"
 
 RSpec.describe GfrImageTransformer::SharpTransformer do
   let(:image_url) { "https://s3.amazonaws.com/media.listamax.com/listings/2020/02/25/apartment-for-sale-in-chalets-de-la-playa-in-vega-baja-puerto-rico-dc355701a612a0443b574c340996f35a.jpg" }
-  let(:encoded_url) { "https://dmekkq419t23o.cloudfront.net/eyJidWNrZXQiOiJtZWRpYS5saXN0YW1heC5jb20iLCJrZXkiOiJsaXN0aW5ncy8yMDIwLzAyLzI1L2FwYXJ0bWVudC1mb3Itc2FsZS1pbi1jaGFsZXRzLWRlLWxhLXBsYXlhLWluLXZlZ2EtYmFqYS1wdWVydG8tcmljby1kYzM1NTcwMWE2MTJhMDQ0M2I1NzRjMzQwOTk2ZjM1YS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjY0MCwiaGVpZ2h0Ijo0ODAsImZpdCI6ImNvdmVyIn19fQ==" }
+  let(:encoded_url) { "https://d3h6jhoqmgxv4p.cloudfront.net/eyJidWNrZXQiOiJtZWRpYS5saXN0YW1heC5jb20iLCJrZXkiOiJsaXN0aW5ncy8yMDIwLzAyLzI1L2FwYXJ0bWVudC1mb3Itc2FsZS1pbi1jaGFsZXRzLWRlLWxhLXBsYXlhLWluLXZlZ2EtYmFqYS1wdWVydG8tcmljby1kYzM1NTcwMWE2MTJhMDQ0M2I1NzRjMzQwOTk2ZjM1YS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjY0MCwiaGVpZ2h0Ijo0ODAsImZpdCI6ImNvdmVyIn19fQ==" }
   let(:metadata) { GfrImageTransformer::Metadata.new(image_url) }
 
   subject { described_class.new(metadata) }
@@ -37,10 +37,10 @@ RSpec.describe GfrImageTransformer::SharpTransformer do
     end
   end
 
-  skip "should output to jpeg" do
+  it "should output to jpeg" do
     image = subject.jpeg(quality: 90).generate
 
-    expect(image.url).to eq("x url")
+    expect(image.url).to eq("https://d3h6jhoqmgxv4p.cloudfront.net/eyJidWNrZXQiOiJtZWRpYS5saXN0YW1heC5jb20iLCJrZXkiOiJsaXN0aW5ncy8yMDIwLzAyLzI1L2FwYXJ0bWVudC1mb3Itc2FsZS1pbi1jaGFsZXRzLWRlLWxhLXBsYXlhLWluLXZlZ2EtYmFqYS1wdWVydG8tcmljby1kYzM1NTcwMWE2MTJhMDQ0M2I1NzRjMzQwOTk2ZjM1YS5qcGciLCJlZGl0cyI6eyJqcGVnIjp7InF1YWxpdHkiOjkwfSwidG9Gb3JtYXQiOiJqcGVnIn19")
   end
 
   describe "#key" do

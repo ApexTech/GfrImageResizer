@@ -101,11 +101,14 @@ module GfrImageTransformer
     ##
     # Use these JPEG options for output image.
     # @param options [Hash] output options
-    def jpeg(options = {})
+    def jpeg(options = {quality: 90})
       @request_params[:edits][:jpeg] = options
+      toFormat("jpeg")
+      self
     end
 
-    def toFormat(format_type, options = {})
+    def toFormat(format_type)
+      @request_params[:edits][:toFormat] = format_type
       self
     end
 
