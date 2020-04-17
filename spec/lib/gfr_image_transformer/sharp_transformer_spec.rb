@@ -20,7 +20,7 @@ RSpec.describe GfrImageTransformer::SharpTransformer do
     let(:encoded_url) { "#{ENV.fetch("IMAGE_TRANSFORMER_DOMAIN")}/eyJidWNrZXQiOiJtZWRpYS5saXN0YW1heC5jb20iLCJrZXkiOiJsaXN0aW5ncy9sb2dvcy9jbGFzaWZpY2Fkb3MtcHItbG9nby5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4NSwiaGVpZ2h0IjoxMTUsImZpdCI6ImNvdmVyIiwiYmFja2dyb3VuZCI6eyJyIjoyNTUsImciOjI1NSwiYiI6MjU1LCJhbHBoYSI6MX19LCJmbGF0dGVuIjp7ImJhY2tncm91bmQiOnsiciI6MjU1LCJnIjoyNTUsImIiOjI1NSwiYWxwaGEiOjF9fSwianBlZyI6eyJxdWFsaXR5Ijo5MH0sInRvRm9ybWF0IjoianBlZyJ9fQ==" }
 
     it "sets a white background for the image" do
-      variant = subject.resize(185, 115, resizer_mode: :cover, background: :white).jpeg.generate
+      variant = subject.resize(185, 115, resizer_mode: :cover, fill_color: :white).with_background(:white).jpeg.generate
 
       expect(variant.url).to eq(encoded_url)
       expect(variant.width).to eq(185)

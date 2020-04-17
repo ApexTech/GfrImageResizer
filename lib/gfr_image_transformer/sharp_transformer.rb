@@ -35,15 +35,6 @@ module GfrImageTransformer
       end
     end
 
-    def fetch_background_from(options)
-      _background = options[:background]
-
-      return { r: 255, g: 255, b: 255, alpha: 1 } if _background == :white
-      return { r: 0, g: 0, b: 0, alpha: nil } if _background == :black
-
-      _background
-    end
-
     ##
     # Resize image to width, height or width x height.
     # @param width [Integer] pixels wide the resultant image should be
@@ -51,7 +42,7 @@ module GfrImageTransformer
     #
     def resize(width, height, options = {})
       resizer_mode = options.fetch(:resizer_mode) { DEFAULT_RESIZER_MODE }
-      background = fetch_background_from(options)
+      background = extract_color_from(options[:fill_color])
 
       _width = width.to_i
       _height = height.to_i
@@ -68,6 +59,21 @@ module GfrImageTransformer
       }.compact
 
       @request_params[:edits][:resize] = resize_params
+      self
+    end
+
+    def extract_color_from(options)
+      _background = options
+
+      return { r: 255, g: 255, b: 255, alpha: 1 } if _background == :white
+      return { r: 0, g: 0, b: 0, alpha: nil } if _background == :black
+
+      _background
+    end
+
+    def with_background(options)
+      background = extract_color_from(options)
+
       @request_params[:edits][:flatten] = { background: background } if background
       self
     end
