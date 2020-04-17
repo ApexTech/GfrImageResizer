@@ -22,6 +22,7 @@ module GfrImageTransformer
     def initialize(metadata, &block)
       @metadata = metadata
       @image_url = CGI.unescape(metadata.url)
+
       @request_params = {
         bucket: bucket_name,
         key: extract_key(image_url),
@@ -34,6 +35,15 @@ module GfrImageTransformer
       end
     end
 
+    def fetch_background_from(options)
+      _background = options[:background]
+
+      return { r: 255, g: 255, b: 255, alpha: 1 } if _background == :white
+      return { r: 0, g: 0, b: 0, alpha: nil } if _background == :black
+
+      _background
+    end
+
     ##
     # Resize image to width, height or width x height.
     # @param width [Integer] pixels wide the resultant image should be
@@ -41,6 +51,8 @@ module GfrImageTransformer
     #
     def resize(width, height, options = {})
       resizer_mode = options.fetch(:resizer_mode) { DEFAULT_RESIZER_MODE }
+      background = fetch_background_from(options)
+
       _width = width.to_i
       _height = height.to_i
       @width = _width.zero? ? nil : _width
@@ -52,9 +64,11 @@ module GfrImageTransformer
         width: @width,
         height: @height,
         fit: resizer_mode,
+        background: background,
       }.compact
 
       @request_params[:edits][:resize] = resize_params
+      @request_params[:edits][:flatten] = { background: background } if background
       self
     end
 
@@ -101,7 +115,7 @@ module GfrImageTransformer
     ##
     # Use these JPEG options for output image.
     # @param options [Hash] output options
-    def jpeg(options = {quality: 90})
+    def jpeg(options = { quality: 90 })
       @request_params[:edits][:jpeg] = options
       toFormat("jpeg")
       self
@@ -130,6 +144,8 @@ module GfrImageTransformer
     end
 
     def extract_key(image_url)
+      return image_url unless image_url.start_with?("http")
+
       if m = image_url.match(/#{bucket_name}.s3.amazonaws.com\/(.+)/)
         @key = m[1]
       elsif m = image_url.match(/s3.amazonaws.com\/#{bucket_name}\/(.+)/)
